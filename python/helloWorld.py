@@ -16,27 +16,37 @@ def helloWorldWithFile():
 
 def helloWorldWithNetWork():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-	sock.bind(('localhost',8001))
+	sock.bind(('localhost',9001))
 	sock.listen(5)
 	while True:
+		print 'waiting for connection'
 		connection,address = sock.accept()
-		try:
-			connection.settimeout(5)
-			buf = connection.recv(1024)
-			print buf
-			if buf == 'welcome':
-				connection.send("welcome to server")
-			elif buf == 'quit':
+		print 'connection from :',address
+		adminCommand=''
+		while True:
+			command = ''
+			while True:
+				buf = connection.recv(1024)
+				if (len(buf)>1 and buf[1]=='\n'):
+					break
+				command =  command + buf
+			print command 
+			if command == 'welcome':
+				connection.send("welcome to server\n")
+			elif command == 'quit':
 				connection.close()
+				break
+			elif command == 'shutdown':
+				adminCommand=command
+				connection.close()
+				break
 			else:
-				connection.send('please go out')
-			
-		except socket.timeout:
-			print 'time out'
-		
-
+				connection.send('please go out\n')
+		if adminCommand=='shutdown':
+			break
+	sock.close()
 if __name__ == '__main__':
-	helloWorld('jotZhao')
-	helloWorldWithInput()
-	helloWorldWithFile()
+	#helloWorld('jotZhao')
+	#helloWorldWithInput()
+	#helloWorldWithFile()
 	helloWorldWithNetWork()
